@@ -4,7 +4,6 @@ import { Observable, of } from 'rxjs';
 import { GradeService, Grade } from '../../services/grade.service';
 import { AuthService } from '../../../auth/services/auth.service';
 
-// Material importok
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -47,7 +46,6 @@ export class GradeListComponent implements OnInit {
     this.isLoading = true;
     this.grades$ = this.gradeService.getUserGradesWithCourses();
 
-    // Feliratkozás a jegyekre, hogy az isLoading állapotot frissítsük
     this.grades$.subscribe({
       next: () => {
         this.isLoading = false;
@@ -60,17 +58,14 @@ export class GradeListComponent implements OnInit {
     });
   }
 
-  // Dátum formázása olvasható formátumra
   formatDate(date: any): string {
     if (!date) return 'Ismeretlen dátum';
 
     try {
-      // Ha Timestamp objektum, akkor konvertáljuk Date-té
       if (date.toDate) {
         date = date.toDate();
       }
 
-      // Ha string, akkor próbáljuk meg Date objektummá alakítani
       if (typeof date === 'string') {
         date = new Date(date);
       }

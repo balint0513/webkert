@@ -160,7 +160,7 @@ export class CourseListComponent implements OnInit, OnDestroy {
   enrollCourse(courseCode: string): void {
     this.isLoading = true;
     this.courseService.enrollCourse(courseCode).pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$) // Add this
     ).subscribe({
       next: (success) => {
         if (success) {
@@ -198,7 +198,7 @@ export class CourseListComponent implements OnInit, OnDestroy {
   discardCourse(courseCode: string): void {
     this.isLoading = true;
     this.courseService.discardCourse(courseCode).pipe(
-      takeUntil(this.destroy$)
+      takeUntil(this.destroy$) // Add this
     ).subscribe({
       next: (success) => {
         if (success) {

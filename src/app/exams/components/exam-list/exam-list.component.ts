@@ -7,7 +7,6 @@ import { AuthService } from '../../../auth/services/auth.service';
 import { UserService } from '../../../user/services/user.service';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-// Material importok
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -53,10 +52,8 @@ export class ExamListComponent implements OnInit {
   errorMessage: string | null = null;
   refreshTrigger = new BehaviorSubject<boolean>(true);
 
-  // Felhasználói szerepkör
   isTeacher = false;
 
-  // Új vizsga űrlap
   examForm: FormGroup;
   showExamForm = false;
 
@@ -67,7 +64,6 @@ export class ExamListComponent implements OnInit {
     private snackBar: MatSnackBar,
     private fb: FormBuilder
   ) {
-    // Vizsga űrlap inicializálása
     this.examForm = this.fb.group({
       courseCode: ['', [Validators.required, Validators.minLength(3)]],
       courseName: ['', [Validators.required, Validators.minLength(5)]],
@@ -77,10 +73,8 @@ export class ExamListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Összes vizsga lekérdezése
     this.allExams$ = this.examService.getAllExams();
 
-    // Felhasználói szerepkör ellenőrzése és vizsgák betöltése
     this.authService.getCurrentUser().pipe(
       switchMap(user => {
         if (!user) {
@@ -94,7 +88,6 @@ export class ExamListComponent implements OnInit {
       if (userProfile) {
         this.isTeacher = userProfile.role === 'teacher';
 
-        // Ha nem tanár, akkor betöltjük a felvett vizsgákat
         if (!this.isTeacher) {
           this.loadUserExams();
         } else {
@@ -135,7 +128,6 @@ export class ExamListComponent implements OnInit {
       })
     );
 
-    // Feliratkozás a vizsgákra, hogy az isLoading állapotot frissítsük
     this.exams$.subscribe({
       next: () => {
         this.isLoading = false;
@@ -148,13 +140,11 @@ export class ExamListComponent implements OnInit {
     });
   }
 
-  // Vizsga felvétele
   enrollExam(courseCode: string): void {
     this.isLoading = true;
     this.examService.enrollExam(courseCode).subscribe({
       next: (success) => {
         if (success) {
-          // Frissítjük a vizsgák listáját
           this.refreshTrigger.next(true);
           this.snackBar.open('Vizsga sikeresen felvéve!', 'Bezárás', {
             duration: 3000,
@@ -186,13 +176,11 @@ export class ExamListComponent implements OnInit {
     });
   }
 
-  // Vizsga leadása
   discardExam(courseCode: string): void {
     this.isLoading = true;
     this.examService.discardExam(courseCode).subscribe({
       next: (success) => {
         if (success) {
-          // Frissítjük a vizsgák listáját
           this.refreshTrigger.next(true);
           this.snackBar.open('Vizsga sikeresen leadva!', 'Bezárás', {
             duration: 3000,
@@ -224,7 +212,6 @@ export class ExamListComponent implements OnInit {
     });
   }
 
-  // Új vizsga létrehozása
   createExam(): void {
     if (this.examForm.invalid) {
       return;
@@ -250,7 +237,6 @@ export class ExamListComponent implements OnInit {
           verticalPosition: 'bottom',
           panelClass: ['success-snackbar']
         });
-        // Frissítjük a vizsgák listáját
         this.allExams$ = this.examService.getAllExams();
       },
       error: (error) => {
@@ -266,7 +252,6 @@ export class ExamListComponent implements OnInit {
     });
   }
 
-  // Vizsga űrlap megjelenítése/elrejtése
   toggleExamForm(): void {
     this.showExamForm = !this.showExamForm;
     if (!this.showExamForm) {
@@ -274,22 +259,18 @@ export class ExamListComponent implements OnInit {
     }
   }
 
-  // Ellenőrzi, hogy a felhasználó már felvette-e a vizsgát
   isExamEnrolled(courseCode: string): boolean {
     return this.enrolledExamCodes.includes(courseCode);
   }
 
-  // Dátum formázása olvasható formátumra
   formatDate(date: any): string {
     if (!date) return 'Ismeretlen dátum';
 
     try {
-      // Ha Timestamp objektum, akkor konvertáljuk Date-té
       if (date.toDate) {
         date = date.toDate();
       }
 
-      // Ha string, akkor próbáljuk meg Date objektummá alakítani
       if (typeof date === 'string') {
         date = new Date(date);
       }

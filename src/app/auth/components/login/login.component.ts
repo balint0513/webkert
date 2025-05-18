@@ -55,7 +55,6 @@ export class LoginComponent {
     try {
       const { email, password } = this.loginForm.value;
 
-      // Ellenőrizzük, hogy az email és jelszó nem undefined vagy üres
       if (!email || !password) {
         throw new Error('Email és jelszó megadása kötelező');
       }
@@ -63,7 +62,7 @@ export class LoginComponent {
       const success = await this.authService.login(email, password);
 
       if (success) {
-        this.router.navigate(['/user/profile']); // Átirányítás a profil oldalra sikeres bejelentkezés után
+        this.router.navigate(['/user/profile']);
       } else {
         this.errorMessage = 'Sikertelen bejelentkezés. Kérjük, ellenőrizze az adatait.';
       }
@@ -71,7 +70,6 @@ export class LoginComponent {
       console.error('Login error:', error);
       this.errorMessage = error.message || 'Hiba történt a bejelentkezés során.';
 
-      // Javítás: Ellenőrizzük, hogy az errorMessage nem null
       this.snackBar.open(this.errorMessage || 'Hiba történt a bejelentkezés során.', 'Bezárás', {
         duration: 5000,
         horizontalPosition: 'center',

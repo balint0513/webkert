@@ -51,10 +51,8 @@
       </div>
     </mat-tab>
 
-    <!-- Elérhető kurzusok fül - mindenkinek megjelenik -->
     <mat-tab [label]="isTeacher ? 'Kurzusok kezelése' : 'Elérhető kurzusok'">
       <div class="tab-content">
-        <!-- Tanári kurzus létrehozás űrlap -->
         <div *ngIf="isTeacher" class="teacher-actions">
           <button mat-raised-button color="primary" (click)="toggleCourseForm()" aria-label="Új kurzus hirdetése">
             <mat-icon>{{ showCourseForm ? 'close' : 'add' }}</mat-icon>

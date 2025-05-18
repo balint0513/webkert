@@ -21,7 +21,6 @@ export class CourseService {
   private firestore: Firestore = inject(Firestore);
   private authService = inject(AuthService);
 
-  // Összes kurzus lekérdezése
   getAllCourses(): Observable<Course[]> {
     const coursesCollectionRef = collection(this.firestore, 'courses');
 
@@ -38,13 +37,11 @@ export class CourseService {
     );
   }
 
-  // Felhasználó kurzusainak lekérdezése a kurzuskódok alapján
   getCoursesByIds(courseCodes: string[]): Observable<Course[]> {
     if (!courseCodes || courseCodes.length === 0) {
       return from([[]]);
     }
 
-    // Minden kurzus lekérdezése, majd szűrés a kliens oldalon
     return this.getAllCourses().pipe(
       map(courses => {
         return courses.filter(course => courseCodes.includes(course.courseCode));
@@ -52,7 +49,6 @@ export class CourseService {
     );
   }
 
-  // Kurzus felvétele a felhasználó enrolledCourses tömbjéhez
   enrollCourse(courseCode: string): Observable<boolean> {
     return this.authService.getCurrentUser().pipe(
       switchMap(user => {
@@ -61,10 +57,8 @@ export class CourseService {
           return of(false);
         }
 
-        // Felhasználó dokumentum lekérdezése a uid alapján
         const usersCollectionRef = collection(this.firestore, 'users');
 
-        // Keresés a uid mező alapján
         return from(getDocs(usersCollectionRef)).pipe(
           map(snapshot => {
             const userDoc = snapshot.docs.find(doc => doc.data()['uid'] === user.uid);
@@ -74,14 +68,12 @@ export class CourseService {
               return false;
             }
 
-            // Ellenőrizzük, hogy a felhasználó tanár-e
             const userData = userDoc.data();
             if (userData['role'] === 'teacher') {
               console.error('Tanárok nem vehetnek fel kurzusokat');
               return false;
             }
 
-            // Ellenőrizzük, hogy a kurzus már szerepel-e a felhasználó kurzusai között
             const enrolledCourses = userData['enrolledCourses'] || [];
 
             if (enrolledCourses.includes(courseCode)) {
@@ -89,7 +81,6 @@ export class CourseService {
               return false;
             }
 
-            // Kurzus hozzáadása a felhasználó enrolledCourses tömbjéhez
             const userDocRef = doc(this.firestore, 'users', userDoc.id);
             return from(updateDoc(userDocRef, {
               enrolledCourses: arrayUnion(courseCode)
@@ -111,7 +102,6 @@ export class CourseService {
     );
   }
 
-  // Kurzus leadása (törlése a felhasználó enrolledCourses tömbjéből)
   discardCourse(courseCode: string): Observable<boolean> {
     return this.authService.getCurrentUser().pipe(
       switchMap(user => {
@@ -120,10 +110,8 @@ export class CourseService {
           return of(false);
         }
 
-        // Felhasználó dokumentum lekérdezése a uid alapján
         const usersCollectionRef = collection(this.firestore, 'users');
 
-        // Keresés a uid mező alapján
         return from(getDocs(usersCollectionRef)).pipe(
           map(snapshot => {
             const userDoc = snapshot.docs.find(doc => doc.data()['uid'] === user.uid);
@@ -133,7 +121,6 @@ export class CourseService {
               return false;
             }
 
-            // Ellenőrizzük, hogy a kurzus szerepel-e a felhasználó kurzusai között
             const userData = userDoc.data();
             const enrolledCourses = userData['enrolledCourses'] || [];
 
@@ -142,7 +129,6 @@ export class CourseService {
               return false;
             }
 
-            // Kurzus eltávolítása a felhasználó enrolledCourses tömbjéből
             const userDocRef = doc(this.firestore, 'users', userDoc.id);
             const updatedCourses = enrolledCourses.filter((code: string) => code !== courseCode);
 
@@ -166,7 +152,6 @@ export class CourseService {
     );
   }
 
-  // Új kurzus létrehozása
   createCourse(course: Omit<Course, 'id'>): Observable<string> {
     const coursesCollectionRef = collection(this.firestore, 'courses');
 

@@ -8,7 +8,7 @@ export interface UserProfile {
   displayName: string;
   email: string;
   enrolledCourses: string[];
-  enrolledExams: string[]; // Új mező a felvett vizsgákhoz
+  enrolledExams: string[];
   neptunCode: string;
   role: string;
   uid: string;

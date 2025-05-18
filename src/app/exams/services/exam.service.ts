@@ -13,7 +13,6 @@ export class ExamService {
   private authService = inject(AuthService);
   private userService = inject(UserService);
 
-  // Összes vizsga lekérdezése
   getAllExams(): Observable<Exam[]> {
     const examsCollectionRef = collection(this.firestore, 'exams');
 
@@ -30,7 +29,6 @@ export class ExamService {
     );
   }
 
-  // Felhasználó vizsgáinak lekérdezése
   getUserExams(): Observable<Exam[]> {
     return this.authService.getCurrentUser().pipe(
       switchMap(user => {
@@ -45,7 +43,7 @@ export class ExamService {
             }
 
             const enrolledExams = userProfile.enrolledExams || [];
-            
+
             if (enrolledExams.length === 0) {
               return of([]);
             }
@@ -61,7 +59,6 @@ export class ExamService {
     );
   }
 
-  // Vizsga felvétele
   enrollExam(courseCode: string): Observable<boolean> {
     return this.authService.getCurrentUser().pipe(
       switchMap(user => {
@@ -70,7 +67,6 @@ export class ExamService {
           return of(false);
         }
 
-        // Felhasználó dokumentum lekérdezése a uid alapján
         return this.userService.getUserByAuthUid(user.uid).pipe(
           switchMap(userProfile => {
             if (!userProfile || !userProfile.id) {
@@ -78,13 +74,12 @@ export class ExamService {
               return of(false);
             }
 
-            // Ellenőrizzük, hogy a felhasználó tanár-e
             if (userProfile.role === 'teacher') {
               console.error('Tanárok nem vehetnek fel vizsgát');
               return of(false);
             }
 
-            // Ellenőrizzük, hogy a vizsga már szerepel-e a felhasználó vizsgái között
+
             const enrolledExams = userProfile.enrolledExams || [];
 
             if (enrolledExams.includes(courseCode)) {
@@ -92,7 +87,6 @@ export class ExamService {
               return of(false);
             }
 
-            // Vizsga hozzáadása a felhasználó enrolledExams tömbjéhez
             const userDocRef = doc(this.firestore, 'users', userProfile.id);
             return from(updateDoc(userDocRef, {
               enrolledExams: arrayUnion(courseCode)
@@ -108,7 +102,6 @@ export class ExamService {
     );
   }
 
-  // Vizsga leadása
   discardExam(courseCode: string): Observable<boolean> {
     return this.authService.getCurrentUser().pipe(
       switchMap(user => {
@@ -124,7 +117,6 @@ export class ExamService {
               return of(false);
             }
 
-            // Ellenőrizzük, hogy a vizsga szerepel-e a felhasználó vizsgái között
             const enrolledExams = userProfile.enrolledExams || [];
 
             if (!enrolledExams.includes(courseCode)) {
@@ -132,7 +124,6 @@ export class ExamService {
               return of(false);
             }
 
-            // Vizsga eltávolítása a felhasználó enrolledExams tömbjéből
             const userDocRef = doc(this.firestore, 'users', userProfile.id);
             const updatedExams = enrolledExams.filter((code: string) => code !== courseCode);
 
@@ -150,7 +141,6 @@ export class ExamService {
     );
   }
 
-  // Új vizsga létrehozása
   createExam(exam: Omit<Exam, 'id'>): Observable<string> {
     const examsCollectionRef = collection(this.firestore, 'exams');
 

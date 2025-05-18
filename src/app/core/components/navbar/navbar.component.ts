@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../auth/services/auth.service';
 import { Observable } from 'rxjs';
 import { User } from '@angular/fire/auth';
@@ -10,13 +11,15 @@ import { User } from '@angular/fire/auth';
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule
+    RouterModule,
+    MatIconModule
   ],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
   user$: Observable<User | null>;
+  isMenuOpen = false;
 
   constructor(
     private authService: AuthService,
@@ -25,10 +28,17 @@ export class NavbarComponent {
     this.user$ = this.authService.getCurrentUser();
   }
 
+  toggleMenu(): void {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu(): void {
+    this.isMenuOpen = false;
+  }
+
   async logout(): Promise<void> {
     try {
       await this.authService.logout();
-      // Sikeres kijelentkezés után átirányítás a bejelentkezési oldalra
       this.router.navigate(['/auth/login']);
     } catch (error) {
       console.error('Hiba a kijelentkezés során:', error);

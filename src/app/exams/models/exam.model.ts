@@ -2,7 +2,7 @@ export interface Exam {
   id?: string;
   courseCode: string;
   courseName: string;
-  examDate: any; // Timestamp vagy Date
+  examDate: any;
   location: string;
-  enrolledStudents?: string[]; // Neptun kódok listája
+  enrolledStudents?: string[];
 }

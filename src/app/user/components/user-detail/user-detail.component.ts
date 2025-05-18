@@ -46,6 +46,5 @@ export class UserDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Inicializálási logika, ha szükséges
   }
 }

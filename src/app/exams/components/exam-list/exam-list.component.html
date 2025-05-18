@@ -42,8 +42,10 @@
       </div>
     </mat-tab>
 
+    <!-- Elérhető vizsgák fül - mindenkinek megjelenik -->
     <mat-tab [label]="isTeacher ? 'Vizsgák kezelése' : 'Elérhető vizsgák'">
       <div class="tab-content">
+        <!-- Tanári vizsga létrehozás űrlap -->
         <div *ngIf="isTeacher" class="teacher-actions">
           <button mat-raised-button color="primary" (click)="toggleExamForm()" aria-label="Új vizsga hirdetése">
             <mat-icon>{{ showExamForm ? 'close' : 'add' }}</mat-icon>
