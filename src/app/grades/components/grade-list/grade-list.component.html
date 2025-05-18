@@ -1,66 +1,166 @@
 <div class="grades-container">
-  <h1>Jegyeim</h1>
-
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner diameter="40"></mat-spinner>
-    <p>Jegyek betöltése...</p>
-  </div>
-
-  <div *ngIf="errorMessage" class="error-message">
-    <mat-icon color="warn">error</mat-icon>
-    <span>{{ errorMessage }}</span>
-  </div>
-
-  <div *ngIf="!isLoading && !(grades$ | async)?.length" class="no-grades">
-    <mat-icon>school</mat-icon>
-    <p>Nincsenek jegyeid. A jegyek a kurzusok teljesítése után jelennek meg.</p>
-  </div>
-
-  <div class="grades-list" *ngIf="!isLoading">
-    <mat-card class="grade-card" *ngFor="let grade of grades$ | async">
-      <mat-card-header>
-        <div mat-card-avatar class="grade-avatar">
-          <mat-icon>grade</mat-icon>
-        </div>
-        <mat-card-title>{{ grade.course?.courseName || 'Ismeretlen kurzus' }}</mat-card-title>
-        <mat-card-subtitle>{{ grade.courseCode }}</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content>
-        <div class="grade-value">
-          <span class="grade-number">{{ grade.grade }}</span>
+  <mat-tab-group>
+    <mat-tab label="Jegyeim" *ngIf="!isTeacher">
+      <div class="tab-content">
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Jegyek betöltése...</p>
         </div>
 
-        <mat-divider></mat-divider>
-
-        <div class="course-details">
-          <p *ngIf="grade.course?.teacherName">
-            <mat-icon>person</mat-icon>
-            <strong>Oktató:</strong> {{ grade.course?.teacherName }}
-          </p>
-          <p *ngIf="grade.course?.credits">
-            <mat-icon>star</mat-icon>
-            <strong>Kredit:</strong> {{ grade.course?.credits }}
-          </p>
-          <p *ngIf="grade.course?.type">
-            <mat-icon>category</mat-icon>
-            <strong>Típus:</strong> {{ grade.course?.type }}
-          </p>
-          <p>
-            <mat-icon>date_range</mat-icon>
-            <strong>Félév:</strong> {{ grade.semester }}
-          </p>
-          <p>
-            <mat-icon>event</mat-icon>
-            <strong>Jegy dátuma:</strong> {{ formatDate(grade.dateAwarded) }}
-          </p>
+        <div *ngIf="errorMessage" class="error-message">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ errorMessage }}</span>
         </div>
 
-        <mat-chip-set>
-          <mat-chip [ngClass]="'grade-chip-' + grade.grade" selected>{{ grade.grade }}</mat-chip>
-          <mat-chip color="primary" selected>{{ grade.semester }}</mat-chip>
-        </mat-chip-set>
-      </mat-card-content>
-    </mat-card>
-  </div>
+        <div *ngIf="!isLoading && !(grades$ | async)?.length" class="no-grades">
+          <mat-icon>school</mat-icon>
+          <p>Nincsenek jegyeid. A jegyek a kurzusok teljesítése után jelennek meg.</p>
+        </div>
+
+        <div class="grades-list" *ngIf="!isLoading">
+          <mat-card class="grade-card" *ngFor="let grade of grades$ | async">
+            <mat-card-header>
+              <div mat-card-avatar class="grade-avatar">
+                <mat-icon>grade</mat-icon>
+              </div>
+              <mat-card-title>{{ grade.course?.courseName || 'Ismeretlen kurzus' }}</mat-card-title>
+              <mat-card-subtitle>{{ grade.courseCode }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="grade-value">
+                <span class="grade-number">{{ grade.grade }}</span>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="course-details">
+                <p *ngIf="grade.course?.teacherName">
+                  <mat-icon>person</mat-icon>
+                  <strong>Oktató:</strong> {{ grade.course?.teacherName }}
+                </p>
+                <p *ngIf="grade.course?.credits">
+                  <mat-icon>star</mat-icon>
+                  <strong>Kredit:</strong> {{ grade.course?.credits }}
+                </p>
+                <p *ngIf="grade.course?.type">
+                  <mat-icon>category</mat-icon>
+                  <strong>Típus:</strong> {{ grade.course?.type }}
+                </p>
+                <p>
+                  <mat-icon>date_range</mat-icon>
+                  <strong>Félév:</strong> {{ grade.semester }}
+                </p>
+                <p>
+                  <mat-icon>event</mat-icon>
+                  <strong>Jegy dátuma:</strong> {{ formatDate(grade.dateAwarded) }}
+                </p>
+              </div>
+
+              <mat-chip-set>
+                <mat-chip [ngClass]="'grade-chip-' + grade.grade" selected>{{ grade.grade }}</mat-chip>
+                <mat-chip color="primary" selected>{{ grade.semester }}</mat-chip>
+              </mat-chip-set>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Jegyek kezelése" *ngIf="isTeacher">
+      <div class="tab-content">
+        <div class="teacher-actions">
+          <button mat-raised-button color="primary" (click)="toggleGradeForm()" aria-label="Új jegy beírása">
+            <mat-icon>{{ showGradeForm ? 'close' : 'add' }}</mat-icon>
+            {{ showGradeForm ? 'Mégse' : 'Új jegy beírása' }}
+          </button>
+
+          <div *ngIf="showGradeForm" class="grade-form-container">
+            <h3 id="grade-form-title">Új jegy beírása</h3>
+            <form [formGroup]="gradeForm" (ngSubmit)="createGrade()" aria-labelledby="grade-form-title">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Neptun kód</mat-label>
+                  <input matInput formControlName="neptunCode" placeholder="pl. TESTUS" aria-label="Neptun kód">
+                  <mat-error *ngIf="gradeForm.get('neptunCode')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Kurzuskód</mat-label>
+                  <input matInput formControlName="courseCode" placeholder="pl. webkert_gy" aria-label="Kurzuskód">
+                  <mat-error *ngIf="gradeForm.get('courseCode')?.hasError('required')">Kötelező mező</mat-error>
+                  <mat-error *ngIf="gradeForm.get('courseCode')?.hasError('minlength')">Legalább 3 karakter szükséges</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Jegy</mat-label>
+                  <mat-select formControlName="grade" aria-label="Jegy értéke">
+                    <mat-option [value]="1">Elégtelen (1)</mat-option>
+                    <mat-option [value]="2">Elégséges (2)</mat-option>
+                    <mat-option [value]="3">Közepes (3)</mat-option>
+                    <mat-option [value]="4">Jó (4)</mat-option>
+                    <mat-option [value]="5">Jeles (5)</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="gradeForm.get('grade')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Félév</mat-label>
+                  <input matInput formControlName="semester" placeholder="pl. 2024/25/2" aria-label="Félév">
+                  <mat-error *ngIf="gradeForm.get('semester')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button type="button" (click)="toggleGradeForm()" aria-label="Mégse">Mégse</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="gradeForm.invalid" aria-label="Jegy beírása">Jegy beírása</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Jegyek betöltése...</p>
+        </div>
+
+        <div class="grades-list" *ngIf="!isLoading">
+          <mat-card class="grade-card" *ngFor="let grade of allGrades$ | async">
+            <mat-card-header>
+              <div mat-card-avatar class="grade-avatar">
+                <mat-icon>grade</mat-icon>
+              </div>
+              <mat-card-title>{{ grade.course?.courseName || 'Ismeretlen kurzus' }}</mat-card-title>
+              <mat-card-subtitle>{{ grade.neptunCode }} - {{ grade.courseCode }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <div class="grade-value">
+                <span class="grade-number">{{ grade.grade }}</span>
+              </div>
+
+              <mat-divider></mat-divider>
+
+              <div class="course-details">
+                <p>
+                  <mat-icon>person</mat-icon>
+                  <strong>Neptun kód:</strong> {{ grade.neptunCode }}
+                </p>
+                <p>
+                  <mat-icon>date_range</mat-icon>
+                  <strong>Félév:</strong> {{ grade.semester }}
+                </p>
+                <p>
+                  <mat-icon>event</mat-icon>
+                  <strong>Jegy dátuma:</strong> {{ formatDate(grade.dateAwarded) }}
+                </p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>
