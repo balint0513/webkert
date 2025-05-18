@@ -1,0 +1,43 @@
+<div class="login-container">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Bejelentkezés</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email cím</mat-label>
+          <input matInput formControlName="email" placeholder="pelda@email.com" type="email">
+          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email cím megadása kötelező</mat-error>
+          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Érvénytelen email cím</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Jelszó</mat-label>
+          <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" aria-label="Password input field">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Jelszó megadása kötelező</mat-error>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">A jelszónak legalább 6 karakter hosszúnak kell lennie</mat-error>
+        </mat-form-field>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || isLoading">
+            <span *ngIf="!isLoading">Bejelentkezés</span>
+            <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+          </button>
+        </div>
+
+        <div class="info-message">
+          <p>A NepToon rendszerbe csak meglévő fiókkal lehet bejelentkezni. Új fiók létrehozásához forduljon az intézményéhez.</p>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

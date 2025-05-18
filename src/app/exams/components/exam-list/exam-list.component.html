@@ -1,0 +1,134 @@
+<div class="exams-container">
+  <mat-tab-group>
+    <mat-tab label="Vizsgáim" *ngIf="!isTeacher">
+      <div class="tab-content">
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Vizsgák betöltése...</p>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <div *ngIf="!isLoading && !(exams$ | async)?.length" class="no-exams">
+          <mat-icon>event</mat-icon>
+          <p>Nincsenek felvett vizsgáid. Kérjük, vedd fel a vizsgákat az elérhető vizsgák fülön.</p>
+        </div>
+
+        <div class="exams-list" *ngIf="!isLoading">
+          <mat-card class="exam-card" *ngFor="let exam of exams$ | async">
+            <mat-card-header>
+              <mat-card-title>{{ exam.courseName }}</mat-card-title>
+              <mat-card-subtitle>{{ exam.courseCode }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p><mat-icon>event</mat-icon> <strong>Időpont:</strong> {{ formatDate(exam.examDate) }}</p>
+              <p><mat-icon>location_on</mat-icon> <strong>Helyszín:</strong> {{ exam.location }}</p>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button
+                mat-raised-button
+                color="warn"
+                (click)="discardExam(exam.courseCode)">
+                <mat-icon>delete</mat-icon> Vizsga leadása
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab [label]="isTeacher ? 'Vizsgák kezelése' : 'Elérhető vizsgák'">
+      <div class="tab-content">
+        <div *ngIf="isTeacher" class="teacher-actions">
+          <button mat-raised-button color="primary" (click)="toggleExamForm()" aria-label="Új vizsga hirdetése">
+            <mat-icon>{{ showExamForm ? 'close' : 'add' }}</mat-icon>
+            {{ showExamForm ? 'Mégse' : 'Új vizsga hirdetése' }}
+          </button>
+
+          <div *ngIf="showExamForm" class="exam-form-container">
+            <h3 id="exam-form-title">Új vizsga létrehozása</h3>
+            <form [formGroup]="examForm" (ngSubmit)="createExam()" aria-labelledby="exam-form-title">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Kurzuskód</mat-label>
+                  <input matInput formControlName="courseCode" placeholder="pl. webkert_ea" aria-label="Kurzuskód">
+                  <mat-error *ngIf="examForm.get('courseCode')?.hasError('required')">Kötelező mező</mat-error>
+                  <mat-error *ngIf="examForm.get('courseCode')?.hasError('minlength')">Legalább 3 karakter szükséges</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Kurzus neve</mat-label>
+                  <input matInput formControlName="courseName" placeholder="pl. Webfejlesztési keretrendszerek" aria-label="Kurzus neve">
+                  <mat-error *ngIf="examForm.get('courseName')?.hasError('required')">Kötelező mező</mat-error>
+                  <mat-error *ngIf="examForm.get('courseName')?.hasError('minlength')">Legalább 5 karakter szükséges</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Vizsga időpontja</mat-label>
+                  <input matInput [matDatepicker]="picker" formControlName="examDate" aria-label="Vizsga időpontja">
+                  <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+                  <mat-error *ngIf="examForm.get('examDate')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Helyszín</mat-label>
+                  <input matInput formControlName="location" placeholder="pl. IR-217 terem" aria-label="Vizsga helyszíne">
+                  <mat-error *ngIf="examForm.get('location')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button type="button" (click)="toggleExamForm()" aria-label="Mégse">Mégse</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="examForm.invalid" aria-label="Vizsga létrehozása">Vizsga létrehozása</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Vizsgák betöltése...</p>
+        </div>
+
+        <div class="exams-list" *ngIf="!isLoading">
+          <mat-card class="exam-card" *ngFor="let exam of allExams$ | async">
+            <mat-card-header>
+              <div mat-card-avatar class="exam-avatar">
+                <mat-icon>event</mat-icon>
+              </div>
+              <mat-card-title>{{ exam.courseName }}</mat-card-title>
+              <mat-card-subtitle>{{ exam.courseCode }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p><mat-icon>event</mat-icon> <strong>Időpont:</strong> {{ formatDate(exam.examDate) }}</p>
+              <p><mat-icon>location_on</mat-icon> <strong>Helyszín:</strong> {{ exam.location }}</p>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button
+                *ngIf="!isTeacher"
+                mat-raised-button
+                color="primary"
+                (click)="enrollExam(exam.courseCode)"
+                [disabled]="isExamEnrolled(exam.courseCode)"
+                [matTooltip]="isExamEnrolled(exam.courseCode) ? 'Már felvetted ezt a vizsgát' : 'Vizsga felvétele'"
+                [attr.aria-label]="isExamEnrolled(exam.courseCode) ? 'Már felvetted ezt a vizsgát' : 'Vizsga felvétele'">
+                <mat-icon>add</mat-icon>
+                {{ isExamEnrolled(exam.courseCode) ? 'Felvéve' : 'Vizsga felvétele' }}
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
