@@ -16,10 +16,10 @@
 
 ### Student
 
-- EMAIL: [email](test@test.com)
+- EMAIL: [test@test.com](test@test.com)
 - PASSWORD: testpw
 
 ### Teacher
 
-- EMAIL: [email](teacher@test.com)
+- EMAIL: [teacher@test.com](teacher@test.com)
 - PASSWORD: testpw
