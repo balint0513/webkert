@@ -1,0 +1,22 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a routerLink="/">NepToon</a>
+    <button class="menu-toggle" (click)="toggleMenu()" aria-label="Menü">
+      <mat-icon>{{ isMenuOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="navbar-menu" [class.is-active]="isMenuOpen">
+    <ng-container *ngIf="user$ | async as user; else loginButton">
+      <a routerLink="/courses" routerLinkActive="active" (click)="closeMenu()">Kurzusok</a>
+      <a routerLink="/exams" routerLinkActive="active" (click)="closeMenu()">Vizsgák</a>
+      <a routerLink="/grades" routerLinkActive="active" (click)="closeMenu()">Érdemjegyek</a>
+      <a routerLink="/user/profile" routerLinkActive="active" (click)="closeMenu()">Profil</a>
+      <button class="logout-button" (click)="logout(); closeMenu()">Kijelentkezés</button>
+    </ng-container>
+
+    <ng-template #loginButton>
+      <a routerLink="/auth/login" routerLinkActive="active" (click)="closeMenu()">Bejelentkezés</a>
+    </ng-template>
+  </div>
+</nav>

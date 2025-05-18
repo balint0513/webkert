@@ -1,0 +1,174 @@
+<div class="courses-container">
+  <mat-tab-group>
+    <!-- Kurzusaim fül - csak diákoknak jelenik meg -->
+    <mat-tab label="Kurzusaim" *ngIf="!isTeacher">
+      <div class="tab-content">
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Kurzusok betöltése...</p>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          <mat-icon color="warn">error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <div *ngIf="!isLoading && !(courses$ | async)?.length" class="no-courses">
+          <mat-icon>school</mat-icon>
+          <p>Nincsenek kurzusaid. Kérjük, vedd fel a kurzusokat az elérhető kurzusok fülön.</p>
+        </div>
+
+        <div class="courses-list" *ngIf="!isLoading">
+          <mat-card class="course-card" *ngFor="let course of courses$ | async">
+            <mat-card-header>
+              <mat-card-title>{{ course.courseName }}</mat-card-title>
+              <mat-card-subtitle>{{ course.courseCode }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p><mat-icon>person</mat-icon> <strong>Oktató:</strong> {{ course.teacherName }}</p>
+              <p><mat-icon>star</mat-icon> <strong>Kredit:</strong> {{ course.credits | creditFormatter }}</p>
+              <p><mat-icon>category</mat-icon> <strong>Típus:</strong> {{ course.type | courseTypeFormatter }}</p>
+
+              <mat-chip-set>
+                <mat-chip color="primary" selected>{{ course.type | courseTypeFormatter }}</mat-chip>
+                <mat-chip color="accent" selected>{{ course.credits | creditFormatter }}</mat-chip>
+              </mat-chip-set>
+              <p><mat-icon>schedule</mat-icon> <strong>Időpont:</strong> {{ course.schedule }}</p>
+              <p><mat-icon>date_range</mat-icon> <strong>Félév:</strong> {{ course.semester }}</p>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button
+                mat-raised-button
+                color="warn"
+                (click)="discardCourse(course.courseCode)">
+                <mat-icon>delete</mat-icon> Kurzus leadása
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab [label]="isTeacher ? 'Kurzusok kezelése' : 'Elérhető kurzusok'">
+      <div class="tab-content">
+        <div *ngIf="isTeacher" class="teacher-actions">
+          <button mat-raised-button color="primary" (click)="toggleCourseForm()" aria-label="Új kurzus hirdetése">
+            <mat-icon>{{ showCourseForm ? 'close' : 'add' }}</mat-icon>
+            {{ showCourseForm ? 'Mégse' : 'Új kurzus hirdetése' }}
+          </button>
+
+          <div *ngIf="showCourseForm" class="course-form-container">
+            <h3 id="course-form-title">Új kurzus létrehozása</h3>
+            <form [formGroup]="courseForm" (ngSubmit)="createCourse()" aria-labelledby="course-form-title">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Kurzuskód</mat-label>
+                  <input matInput formControlName="courseCode" placeholder="pl. webkert_gy" aria-label="Kurzuskód">
+                  <mat-error *ngIf="courseForm.get('courseCode')?.hasError('required')">Kötelező mező</mat-error>
+                  <mat-error *ngIf="courseForm.get('courseCode')?.hasError('minlength')">Legalább 3 karakter szükséges</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Kurzus neve</mat-label>
+                  <input matInput formControlName="courseName" placeholder="pl. Webfejlesztési keretrendszerek" aria-label="Kurzus neve">
+                  <mat-error *ngIf="courseForm.get('courseName')?.hasError('required')">Kötelező mező</mat-error>
+                  <mat-error *ngIf="courseForm.get('courseName')?.hasError('minlength')">Legalább 5 karakter szükséges</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Kreditérték</mat-label>
+                  <input matInput type="number" formControlName="credits" min="1" max="5" aria-label="Kreditérték" placeholder="1-5 közötti érték">
+                  <mat-error *ngIf="courseForm.get('credits')?.hasError('required')">Kötelező mező</mat-error>
+                  <mat-error *ngIf="courseForm.get('credits')?.hasError('min') || courseForm.get('credits')?.hasError('max')">
+                    1 és 5 közötti érték adható meg
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Típus</mat-label>
+                  <mat-select formControlName="type" aria-label="Kurzus típusa">
+                    <mat-option value="előadás">Előadás</mat-option>
+                    <mat-option value="gyakorlat">Gyakorlat</mat-option>
+                    <mat-option value="labor">Labor</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="courseForm.get('type')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Időpont</mat-label>
+                  <input matInput formControlName="schedule" placeholder="pl. H: 10:00-12:00" aria-label="Kurzus időpontja">
+                  <mat-error *ngIf="courseForm.get('schedule')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Félév</mat-label>
+                  <input matInput formControlName="semester" placeholder="pl. 2024/25/2" aria-label="Kurzus féléve">
+                  <mat-error *ngIf="courseForm.get('semester')?.hasError('required')">Kötelező mező</mat-error>
+                </mat-form-field>
+              </div>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Oktató neve</mat-label>
+                <input matInput formControlName="teacherName" placeholder="pl. Dr. Példa János" aria-label="Oktató neve">
+                <mat-error *ngIf="courseForm.get('teacherName')?.hasError('required')">Kötelező mező</mat-error>
+              </mat-form-field>
+
+              <div class="form-actions">
+                <button mat-raised-button type="button" (click)="toggleCourseForm()" aria-label="Mégse">Mégse</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="courseForm.invalid" aria-label="Kurzus létrehozása">Kurzus létrehozása</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Kurzusok betöltése...</p>
+        </div>
+
+        <div class="courses-list" *ngIf="!isLoading">
+          <mat-card class="course-card" *ngFor="let course of allCourses$ | async">
+            <mat-card-header>
+              <div mat-card-avatar class="course-avatar">
+                <mat-icon>school</mat-icon>
+              </div>
+              <mat-card-title>{{ course.courseName }}</mat-card-title>
+              <mat-card-subtitle>{{ course.courseCode }}</mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              <p><mat-icon>person</mat-icon> <strong>Oktató:</strong> {{ course.teacherName }}</p>
+              <p><mat-icon>star</mat-icon> <strong>Kredit:</strong> {{ course.credits }}</p>
+              <p><mat-icon>schedule</mat-icon> <strong>Időpont:</strong> {{ course.schedule }}</p>
+              <p><mat-icon>date_range</mat-icon> <strong>Félév:</strong> {{ course.semester }}</p>
+              <mat-chip-set>
+                <mat-chip color="primary" selected>{{ course.type }}</mat-chip>
+                <mat-chip color="accent" selected>{{ course.credits }} kredit</mat-chip>
+              </mat-chip-set>
+            </mat-card-content>
+
+            <mat-card-actions align="end">
+              <button
+                *ngIf="!isTeacher"
+                mat-raised-button
+                color="primary"
+                (click)="enrollCourse(course.courseCode)"
+                [disabled]="isCourseEnrolled(course.courseCode)"
+                [matTooltip]="isCourseEnrolled(course.courseCode) ? 'Már felvetted ezt a kurzust' : 'Kurzus felvétele'"
+                [attr.aria-label]="isCourseEnrolled(course.courseCode) ? 'Már felvetted ezt a kurzust' : 'Kurzus felvétele'">
+                <mat-icon>add</mat-icon>
+                {{ isCourseEnrolled(course.courseCode) ? 'Felvéve' : 'Kurzus felvétele' }}
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
